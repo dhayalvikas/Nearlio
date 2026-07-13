@@ -1,0 +1,14 @@
+﻿# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env (root-level, if you ever add one)
+.env
+
+# Logs
+*.log
