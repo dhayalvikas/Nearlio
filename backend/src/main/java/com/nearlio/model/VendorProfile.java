@@ -56,4 +56,8 @@ public class VendorProfile {
 
     @Column(name = "rating_count")
     private Integer ratingCount = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verification_type", nullable = false)
+    private VerificationType verificationType = VerificationType.UNVERIFIED;
 }

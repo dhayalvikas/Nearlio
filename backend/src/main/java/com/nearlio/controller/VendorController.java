@@ -35,4 +35,9 @@ public class VendorController {
         VendorOffering offering = vendorService.addService(email, request);
         return ResponseEntity.ok(offering);
     }
+
+    @GetMapping("/stats")
+    public ResponseEntity<com.nearlio.dto.VendorStatsDto> getStats(Authentication authentication) {
+        return ResponseEntity.ok(vendorService.getVendorStats(authentication.getName()));
+    }
 }

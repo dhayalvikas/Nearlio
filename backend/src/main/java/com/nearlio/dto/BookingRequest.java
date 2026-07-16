@@ -8,4 +8,6 @@ public class BookingRequest {
 
     @NotNull
     private Long slotId;
+    // In BookingRequest.java
+    private Boolean isEmergency = false;
 }

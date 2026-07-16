@@ -50,6 +50,7 @@ public class BookingService {
         booking.setCustomer(customer);
         booking.setSlot(slot);
         booking.setStatus(BookingStatus.PENDING);
+        booking.setIsEmergency(Boolean.TRUE.equals(request.getIsEmergency()));
 
         // If two requests race past the isBooked check simultaneously, the
         // unique constraint on slot_id makes this save() throw for the loser —
@@ -92,6 +93,19 @@ public class BookingService {
             ServiceSlot slot = booking.getSlot();
             slot.setIsBooked(false);
             serviceSlotRepository.save(slot);
+        }
+
+        if (newStatus.equals("COMPLETED")) {
+            booking.setLaborCost(request.getLaborCost());
+            booking.setMaterialCost(request.getMaterialCost());
+            booking.setTravelCost(request.getTravelCost());
+            booking.setBeforeImageUrl(request.getBeforeImageUrl());
+            booking.setAfterImageUrl(request.getAfterImageUrl());
+
+            Integer warrantyMonths = booking.getSlot().getOffering().getWarrantyMonths();
+            if (warrantyMonths != null && warrantyMonths > 0) {
+                booking.setWarrantyExpiresAt(java.time.LocalDate.now().plusMonths(warrantyMonths));
+            }
         }
 
         return bookingRepository.save(booking);

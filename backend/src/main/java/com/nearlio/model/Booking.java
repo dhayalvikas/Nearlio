@@ -37,6 +37,27 @@ public class Booking {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "is_emergency")
+    private Boolean isEmergency = false;
+
+    @Column(name = "labor_cost", precision = 10, scale = 2)
+    private java.math.BigDecimal laborCost;
+
+    @Column(name = "material_cost", precision = 10, scale = 2)
+    private java.math.BigDecimal materialCost;
+
+    @Column(name = "travel_cost", precision = 10, scale = 2)
+    private java.math.BigDecimal travelCost;
+
+    @Column(name = "before_image_url", length = 500)
+    private String beforeImageUrl;
+
+    @Column(name = "after_image_url", length = 500)
+    private String afterImageUrl;
+
+    @Column(name = "warranty_expires_at")
+    private java.time.LocalDate warrantyExpiresAt;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

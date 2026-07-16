@@ -31,4 +31,7 @@ public class VendorOffering {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @Column(name = "warranty_months")
+    private Integer warrantyMonths = 0; // 0 = no warranty offered
 }

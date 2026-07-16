@@ -2,15 +2,13 @@ package com.nearlio.service;
 
 import com.nearlio.dto.VendorProfileRequest;
 import com.nearlio.dto.VendorServiceRequest;
+import com.nearlio.dto.VendorStatsDto;
 import com.nearlio.model.Category;
 import com.nearlio.model.Role;
 import com.nearlio.model.User;
 import com.nearlio.model.VendorOffering;
 import com.nearlio.model.VendorProfile;
-import com.nearlio.repository.CategoryRepository;
-import com.nearlio.repository.UserRepository;
-import com.nearlio.repository.VendorOfferingRepository;
-import com.nearlio.repository.VendorProfileRepository;
+import com.nearlio.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +20,7 @@ public class VendorService {
     private final VendorOfferingRepository vendorOfferingRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final BookingRepository bookingRepository;
 
     public VendorProfile createProfile(String userEmail, VendorProfileRequest request) {
         User user = userRepository.findByEmail(userEmail)
@@ -68,5 +67,23 @@ public class VendorService {
         offering.setDurationMinutes(request.getDurationMinutes());
 
         return vendorOfferingRepository.save(offering);
+    }
+
+    public VendorStatsDto getVendorStats(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        VendorProfile profile = vendorProfileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Vendor profile not found"));
+
+        long total = bookingRepository.countTotalByVendorId(profile.getId());
+        long completed = bookingRepository.countBySlot_Offering_Vendor_IdAndStatus(profile.getId(), com.nearlio.model.BookingStatus.COMPLETED);
+        long cancelled = bookingRepository.countBySlot_Offering_Vendor_IdAndStatus(profile.getId(), com.nearlio.model.BookingStatus.CANCELLED);
+        long rejected = bookingRepository.countBySlot_Offering_Vendor_IdAndStatus(profile.getId(), com.nearlio.model.BookingStatus.REJECTED);
+
+        double completionRate = total == 0 ? 0.0 : Math.round((completed * 1000.0 / total)) / 10.0;
+        double cancellationRate = total == 0 ? 0.0 : Math.round((cancelled * 1000.0 / total)) / 10.0;
+
+        return new VendorStatsDto(total, completed, cancelled, rejected, completionRate, cancellationRate);
     }
 }

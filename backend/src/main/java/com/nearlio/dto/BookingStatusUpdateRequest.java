@@ -10,4 +10,10 @@ public class BookingStatusUpdateRequest {
     private String status; // CONFIRMED, REJECTED, COMPLETED, CANCELLED
 
     private String cancellationReason;
+
+    private java.math.BigDecimal laborCost;
+    private java.math.BigDecimal materialCost;
+    private java.math.BigDecimal travelCost;
+    private String beforeImageUrl;
+    private String afterImageUrl;
 }
