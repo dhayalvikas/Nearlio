@@ -20,6 +20,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceSlotRepository serviceSlotRepository;
     private final UserRepository userRepository;
+    private final SseEmitterService sseEmitterService;
 
     private static final Set<String> VALID_STATUSES = Set.of(
             "CONFIRMED", "REJECTED", "COMPLETED", "CANCELLED"
@@ -37,8 +38,6 @@ public class BookingService {
         ServiceSlot slot = serviceSlotRepository.findById(request.getSlotId())
                 .orElseThrow(() -> new IllegalArgumentException("Slot not found"));
 
-        // Fast-fail check — the real guarantee is the DB unique constraint on slot_id,
-        // but this avoids a wasted round-trip and gives a friendlier error message
         if (Boolean.TRUE.equals(slot.getIsBooked())) {
             throw new IllegalArgumentException("Slot no longer available");
         }
@@ -52,11 +51,6 @@ public class BookingService {
         booking.setStatus(BookingStatus.PENDING);
         booking.setIsEmergency(Boolean.TRUE.equals(request.getIsEmergency()));
 
-        // If two requests race past the isBooked check simultaneously, the
-        // unique constraint on slot_id makes this save() throw for the loser —
-        // caught by GlobalExceptionHandler's generic Exception handler as a 500.
-        // Good enough for V1; a dedicated DataIntegrityViolationException handler
-        // returning a clean 409 Conflict is a nice V2 refinement.
         return bookingRepository.save(booking);
     }
 
@@ -88,7 +82,6 @@ public class BookingService {
             booking.setCancellationReason(request.getCancellationReason());
         }
 
-        // Free up the slot if the booking didn't go through
         if (newStatus.equals("REJECTED") || newStatus.equals("CANCELLED")) {
             ServiceSlot slot = booking.getSlot();
             slot.setIsBooked(false);
@@ -108,7 +101,17 @@ public class BookingService {
             }
         }
 
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+
+        sseEmitterService.sendBookingUpdate(
+                saved.getCustomer().getEmail(),
+                java.util.Map.of(
+                        "bookingId", saved.getId(),
+                        "status", saved.getStatus().name()
+                )
+        );
+
+        return saved;
     }
 
     private void validateTransition(BookingStatus current, BookingStatus next, boolean isVendor, boolean isCustomer) {
