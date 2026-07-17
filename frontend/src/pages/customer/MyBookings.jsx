@@ -25,13 +25,11 @@ export default function MyBookings() {
     loadBookings();
   }, []);
 
-  const handleSSEMessage = useCallback((payload) => {
-    setLiveUpdate(`Booking #${payload.bookingId} updated to ${payload.status}`);
-    setBookings((prev) =>
-      prev.map((b) => (b.id === payload.bookingId ? { ...b, status: payload.status } : b))
-    );
-    setTimeout(() => setLiveUpdate(''), 4000);
-  }, []);
+const handleSSEMessage = useCallback((payload) => {
+  setLiveUpdate(`Booking #${payload.bookingId} updated to ${payload.status}`);
+  loadBookings(); // refetch everything instead of manually patching one field
+  setTimeout(() => setLiveUpdate(''), 4000);
+}, []);
 
   useSSE(handleSSEMessage);
 

@@ -1,0 +1,8 @@
+import api from './axios';
+
+export const createVendorProfile = (data) => api.post('/vendor/profile', data);
+export const addVendorService = (data) => api.post('/vendor/services', data);
+export const createSlot = (data) => api.post('/slots', data);
+export const getVendorBookings = () => api.get('/bookings/vendor');
+export const updateBookingStatus = (bookingId, data) => api.patch(`/bookings/${bookingId}/status`, data);
+export const getVendorStats = () => api.get('/vendor/stats');

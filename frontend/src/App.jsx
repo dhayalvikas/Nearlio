@@ -7,6 +7,10 @@ import Navbar from './components/Navbar';
 import { useAuth } from './context/AuthContext';
 import VendorDetail from './pages/customer/VendorDetail';
 import MyBookings from './pages/customer/MyBookings';
+import Favorites from './pages/customer/Favorites';
+import VendorDashboard from './pages/vendor/Dashboard';
+import IncomingBookings from './pages/vendor/IncomingBookings';
+
 
 function App() {
   const { loading } = useAuth();
@@ -23,6 +27,9 @@ function App() {
         <Route path="/category/:categoryId" element={<VendorList />} />
         <Route path="/vendor/:vendorId" element={<VendorDetail />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/favorites" element={<Favorites />} />
+        <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+        <Route path="/vendor/bookings" element={<IncomingBookings />} />
       </Routes>
     </>
   );
