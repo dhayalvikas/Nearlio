@@ -40,4 +40,14 @@ public class VendorController {
     public ResponseEntity<com.nearlio.dto.VendorStatsDto> getStats(Authentication authentication) {
         return ResponseEntity.ok(vendorService.getVendorStats(authentication.getName()));
     }
+
+    @GetMapping("/{vendorId}")
+    public ResponseEntity<VendorProfile> getVendorById(@PathVariable Long vendorId) {
+        return ResponseEntity.ok(vendorService.getVendorById(vendorId));
+    }
+
+    @GetMapping("/{vendorId}/services")
+    public ResponseEntity<java.util.List<com.nearlio.model.VendorOffering>> getVendorServices(@PathVariable Long vendorId) {
+        return ResponseEntity.ok(vendorService.getServicesByVendor(vendorId));
+    }
 }

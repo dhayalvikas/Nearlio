@@ -86,4 +86,13 @@ public class VendorService {
 
         return new VendorStatsDto(total, completed, cancelled, rejected, completionRate, cancellationRate);
     }
+
+    public VendorProfile getVendorById(Long vendorId) {
+        return vendorProfileRepository.findById(vendorId)
+                .orElseThrow(() -> new IllegalArgumentException("Vendor not found"));
+    }
+
+    public java.util.List<VendorOffering> getServicesByVendor(Long vendorId) {
+        return vendorOfferingRepository.findByVendorId(vendorId);
+    }
 }
