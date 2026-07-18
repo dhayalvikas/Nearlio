@@ -6,3 +6,5 @@ export const createSlot = (data) => api.post('/slots', data);
 export const getVendorBookings = () => api.get('/bookings/vendor');
 export const updateBookingStatus = (bookingId, data) => api.patch(`/bookings/${bookingId}/status`, data);
 export const getVendorStats = () => api.get('/vendor/stats');
+export const getVendorServices = (vendorId) => api.get(`/vendor/${vendorId}/services`);
+export const getMyVendorProfile = () => api.get('/vendor/me');

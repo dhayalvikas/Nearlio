@@ -95,4 +95,11 @@ public class VendorService {
     public java.util.List<VendorOffering> getServicesByVendor(Long vendorId) {
         return vendorOfferingRepository.findByVendorId(vendorId);
     }
+
+    public VendorProfile getVendorByUserEmail(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return vendorProfileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Vendor profile not found"));
+    }
 }

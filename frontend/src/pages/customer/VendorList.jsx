@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Star, ArrowLeft, Banknote, ShieldCheck, Users } from 'lucide-react';
 import { getVendorsByCategory } from '../../api/catalog';
+import Card from '../../components/ui/Card';
+import Spinner from '../../components/ui/Spinner';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function VendorList() {
   const { categoryId } = useParams();
@@ -15,43 +19,57 @@ export default function VendorList() {
       .finally(() => setLoading(false));
   }, [categoryId]);
 
-  if (loading) return <p className="p-8 text-gray-500">Loading vendors...</p>;
-  if (error) return <p className="p-8 text-red-600">{error}</p>;
+  if (loading) return <Spinner label="Finding vendors nearby..." />;
+  if (error) return <p className="p-8 text-sindoor text-sm">{error}</p>;
 
   return (
-    <div className="p-8">
-      <Link to="/" className="text-sm text-blue-600 hover:underline mb-4 inline-block">
-        ← Back to categories
+    <div className="max-w-3xl mx-auto px-6 py-10">
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 text-sm text-ink/60 hover:text-ink transition mb-6"
+      >
+        <ArrowLeft size={15} /> Back to categories
       </Link>
-      <h1 className="text-2xl font-bold mb-6">
+
+      <h1 className="font-display text-3xl text-ink mb-6">
         {vendors[0]?.category?.name || 'Vendors'}
       </h1>
 
       {vendors.length === 0 ? (
-        <p className="text-gray-500">No vendors in this category yet.</p>
+        <EmptyState
+          icon={Users}
+          title="No vendors here yet"
+          description="This category doesn't have anyone listed nearby yet — check back soon."
+        />
       ) : (
         <div className="grid gap-4">
           {vendors.map((vendor) => (
-            <Link
-              key={vendor.id}
-              to={`/vendor/${vendor.id}`}
-              className="bg-white border rounded-lg p-5 hover:shadow-md hover:border-blue-400 transition flex justify-between items-center"
-            >
-              <div>
-                <h2 className="font-semibold text-lg">{vendor.businessName}</h2>
-                <p className="text-sm text-gray-500 mt-1">{vendor.location}</p>
-                <p className="text-sm text-gray-600 mt-1">{vendor.tags}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-yellow-500 font-medium">
-                  ★ {vendor.avgRating.toFixed(1)} ({vendor.ratingCount})
+            <Link key={vendor.id} to={`/vendor/${vendor.id}`}>
+              <Card className="hover:border-terracotta hover:shadow-sm transition flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-display text-lg text-ink">{vendor.businessName}</h2>
+                    {vendor.verificationType !== 'UNVERIFIED' && (
+                      <ShieldCheck size={16} className="text-banyan" strokeWidth={2} />
+                    )}
+                  </div>
+                  <p className="text-sm text-ink/50 mt-1">{vendor.location}</p>
+                  <p className="text-sm text-ink/60 mt-1.5">{vendor.tags}</p>
                 </div>
-                {vendor.acceptsCash && (
-                  <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded mt-1 inline-block">
-                    Cash accepted
-                  </span>
-                )}
-              </div>
+
+                <div className="text-right shrink-0 ml-4">
+                  <div className="flex items-center justify-end gap-1 text-terracotta font-medium">
+                    <Star size={15} fill="currentColor" />
+                    {vendor.avgRating.toFixed(1)}
+                    <span className="text-ink/40 font-normal">({vendor.ratingCount})</span>
+                  </div>
+                  {vendor.acceptsCash && (
+                    <div className="flex items-center justify-end gap-1 text-xs text-banyan mt-2">
+                      <Banknote size={13} /> Cash accepted
+                    </div>
+                  )}
+                </div>
+              </Card>
             </Link>
           ))}
         </div>

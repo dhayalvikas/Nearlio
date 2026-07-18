@@ -50,4 +50,9 @@ public class VendorController {
     public ResponseEntity<java.util.List<com.nearlio.model.VendorOffering>> getVendorServices(@PathVariable Long vendorId) {
         return ResponseEntity.ok(vendorService.getServicesByVendor(vendorId));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<VendorProfile> getMyProfile(Authentication authentication) {
+        return ResponseEntity.ok(vendorService.getVendorByUserEmail(authentication.getName()));
+    }
 }
