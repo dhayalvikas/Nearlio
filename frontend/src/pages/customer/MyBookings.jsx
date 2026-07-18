@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getMyBookings } from '../../api/bookings';
+import { getMyBookings, submitRating } from '../../api/bookings';
 import { useSSE } from '../../hooks/useSSE';
 
 const statusColors = {
@@ -14,6 +14,9 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [liveUpdate, setLiveUpdate] = useState('');
+  const [ratingBookingId, setRatingBookingId] = useState(null);
+  const [ratingForm, setRatingForm] = useState({ rating: 5, review: '' });
+  const [ratedBookings, setRatedBookings] = useState(new Set());
 
   const loadBookings = () => {
     getMyBookings()
@@ -25,11 +28,23 @@ export default function MyBookings() {
     loadBookings();
   }, []);
 
-const handleSSEMessage = useCallback((payload) => {
-  setLiveUpdate(`Booking #${payload.bookingId} updated to ${payload.status}`);
-  loadBookings(); // refetch everything instead of manually patching one field
-  setTimeout(() => setLiveUpdate(''), 4000);
-}, []);
+  const handleRatingSubmit = async (e, bookingId) => {
+    e.preventDefault();
+    try {
+      await submitRating({ bookingId, rating: Number(ratingForm.rating), review: ratingForm.review });
+      setRatedBookings((prev) => new Set(prev).add(bookingId));
+      setRatingBookingId(null);
+      setRatingForm({ rating: 5, review: '' });
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to submit rating');
+    }
+  };
+
+  const handleSSEMessage = useCallback((payload) => {
+    setLiveUpdate(`Booking #${payload.bookingId} updated to ${payload.status}`);
+    loadBookings();
+    setTimeout(() => setLiveUpdate(''), 4000);
+  }, []);
 
   useSSE(handleSSEMessage);
 
@@ -83,6 +98,48 @@ const handleSSEMessage = useCallback((payload) => {
                     <p className="text-green-600 mt-1">
                       Warranty until {booking.warrantyExpiresAt}
                     </p>
+                  )}
+                </div>
+              )}
+
+              {booking.status === 'COMPLETED' && !ratedBookings.has(booking.id) && (
+                <div className="mt-3 pt-3 border-t">
+                  {ratingBookingId === booking.id ? (
+                    <form onSubmit={(e) => handleRatingSubmit(e, booking.id)} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm">Rating:</label>
+                        <select
+                          value={ratingForm.rating}
+                          onChange={(e) => setRatingForm({ ...ratingForm, rating: e.target.value })}
+                          className="border rounded px-2 py-1 text-sm"
+                        >
+                          {[5, 4, 3, 2, 1].map((n) => (
+                            <option key={n} value={n}>{n} ★</option>
+                          ))}
+                        </select>
+                      </div>
+                      <textarea
+                        placeholder="Write a review (optional)"
+                        value={ratingForm.review}
+                        onChange={(e) => setRatingForm({ ...ratingForm, review: e.target.value })}
+                        className="w-full border rounded px-2 py-1 text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <button type="submit" className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">
+                          Submit Rating
+                        </button>
+                        <button type="button" onClick={() => setRatingBookingId(null)} className="text-gray-500 text-sm">
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <button
+                      onClick={() => setRatingBookingId(booking.id)}
+                      className="text-sm text-yellow-600 border border-yellow-200 px-3 py-1 rounded hover:bg-yellow-50"
+                    >
+                      ★ Rate this service
+                    </button>
                   )}
                 </div>
               )}

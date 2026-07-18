@@ -10,6 +10,9 @@ import MyBookings from './pages/customer/MyBookings';
 import Favorites from './pages/customer/Favorites';
 import VendorDashboard from './pages/vendor/Dashboard';
 import IncomingBookings from './pages/vendor/IncomingBookings';
+import VendorStats from './pages/vendor/Stats';
+import AdminDashboard from './pages/admin/AdminDashboard';
+
 
 
 function App() {
@@ -30,6 +33,8 @@ function App() {
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/vendor/dashboard" element={<VendorDashboard />} />
         <Route path="/vendor/bookings" element={<IncomingBookings />} />
+        <Route path="/vendor/stats" element={<VendorStats />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </>
   );

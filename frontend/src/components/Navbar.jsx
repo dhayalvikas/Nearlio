@@ -39,6 +39,9 @@ export default function Navbar() {
 
             {user.role === 'VENDOR' && (
               <>
+                <Link to="/vendor/stats" className="text-sm hover:text-blue-600">
+                  Stats
+                </Link>
                 <Link to="/vendor/dashboard" className="text-sm hover:text-blue-600">
                   Dashboard
                 </Link>
