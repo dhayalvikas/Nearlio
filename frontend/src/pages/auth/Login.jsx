@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { LogIn } from 'lucide-react';
 import { loginUser } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,7 +20,6 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const response = await loginUser({ email, password });
       login(response.data);
@@ -29,52 +32,29 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"
-      >
-        <h1 className="text-2xl font-bold mb-6 text-center">Login to Nearlio</h1>
+    <div className="min-h-[80vh] flex items-center justify-center px-6">
+      <Card className="w-full max-w-sm">
+        <div className="text-center mb-6">
+          <LogIn className="mx-auto mb-2 text-terracotta" size={22} strokeWidth={1.5} />
+          <h1 className="font-display text-2xl text-ink">Welcome back</h1>
+          <p className="text-sm text-ink/50 mt-1">Log in to Nearlio</p>
+        </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
-            {error}
-          </div>
-        )}
+        {error && <p className="text-sindoor text-sm text-center mb-4">{error}</p>}
 
-        <label className="block mb-2 text-sm font-medium">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full border rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Button type="submit" variant="primary" className="w-full justify-center" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </Button>
+        </form>
 
-        <label className="block mb-2 text-sm font-medium">Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full border rounded px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-
-        <p className="text-sm text-center mt-4">
+        <p className="text-sm text-center text-ink/60 mt-6">
           Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Register
-          </Link>
+          <Link to="/register" className="text-terracotta hover:underline">Register</Link>
         </p>
-      </form>
+      </Card>
     </div>
   );
 }

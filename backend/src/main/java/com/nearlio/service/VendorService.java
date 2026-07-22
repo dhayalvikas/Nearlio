@@ -102,4 +102,19 @@ public class VendorService {
         return vendorProfileRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Vendor profile not found"));
     }
+
+    public void deleteService(String userEmail, Long serviceId) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        VendorOffering offering = vendorOfferingRepository.findById(serviceId)
+                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
+
+        if (!offering.getVendor().getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("You do not own this service");
+        }
+
+        offering.setIsActive(false);
+        vendorOfferingRepository.save(offering);
+    }
 }

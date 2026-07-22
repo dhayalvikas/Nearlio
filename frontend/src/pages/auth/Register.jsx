@@ -1,31 +1,27 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { UserPlus } from 'lucide-react';
 import { registerUser } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Select from '../../components/ui/Select';
 
 export default function Register() {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'CUSTOMER',
-    phone: '',
-  });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'CUSTOMER', phone: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const response = await registerUser(form);
       login(response.data);
@@ -38,82 +34,35 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"
-      >
-        <h1 className="text-2xl font-bold mb-6 text-center">Join Nearlio</h1>
+    <div className="min-h-[80vh] flex items-center justify-center px-6 py-10">
+      <Card className="w-full max-w-sm">
+        <div className="text-center mb-6">
+          <UserPlus className="mx-auto mb-2 text-terracotta" size={22} strokeWidth={1.5} />
+          <h1 className="font-display text-2xl text-ink">Join Nearlio</h1>
+          <p className="text-sm text-ink/50 mt-1">Find help, or offer it</p>
+        </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
-            {error}
-          </div>
-        )}
+        {error && <p className="text-sindoor text-sm text-center mb-4">{error}</p>}
 
-        <label className="block mb-2 text-sm font-medium">Full Name</label>
-        <input
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          required
-          className="w-full border rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input label="Full Name" name="name" value={form.name} onChange={handleChange} required />
+          <Input label="Email" type="email" name="email" value={form.email} onChange={handleChange} required />
+          <Input label="Password" type="password" name="password" value={form.password} onChange={handleChange} required />
+          <Input label="Phone (optional)" name="phone" value={form.phone} onChange={handleChange} />
+          <Select label="I am a" name="role" value={form.role} onChange={handleChange}>
+            <option value="CUSTOMER">Customer — looking for services</option>
+            <option value="VENDOR">Vendor — offering services</option>
+          </Select>
+          <Button type="submit" variant="primary" className="w-full justify-center" disabled={loading}>
+            {loading ? 'Creating account...' : 'Register'}
+          </Button>
+        </form>
 
-        <label className="block mb-2 text-sm font-medium">Email</label>
-        <input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          required
-          className="w-full border rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <label className="block mb-2 text-sm font-medium">Password</label>
-        <input
-          type="password"
-          name="password"
-          value={form.password}
-          onChange={handleChange}
-          required
-          className="w-full border rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <label className="block mb-2 text-sm font-medium">Phone (optional)</label>
-        <input
-          name="phone"
-          value={form.phone}
-          onChange={handleChange}
-          className="w-full border rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <label className="block mb-2 text-sm font-medium">I am a</label>
-        <select
-          name="role"
-          value={form.role}
-          onChange={handleChange}
-          className="w-full border rounded px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="CUSTOMER">Customer — looking for services</option>
-          <option value="VENDOR">Vendor — offering services</option>
-        </select>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Creating account...' : 'Register'}
-        </button>
-
-        <p className="text-sm text-center mt-4">
+        <p className="text-sm text-center text-ink/60 mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline">
-            Login
-          </Link>
+          <Link to="/login" className="text-terracotta hover:underline">Login</Link>
         </p>
-      </form>
+      </Card>
     </div>
   );
 }

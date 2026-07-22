@@ -30,4 +30,15 @@ public class SlotController {
     public ResponseEntity<List<ServiceSlot>> getOpenSlots(@PathVariable Long offeringId) {
         return ResponseEntity.ok(slotService.getOpenSlots(offeringId));
     }
+
+    @DeleteMapping("/{slotId}")
+    public ResponseEntity<Void> deleteSlot(@PathVariable Long slotId, Authentication authentication) {
+        slotService.deleteSlot(authentication.getName(), slotId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/mine")
+    public ResponseEntity<List<ServiceSlot>> getMySlots(Authentication authentication) {
+        return ResponseEntity.ok(slotService.getMySlots(authentication.getName()));
+    }
 }

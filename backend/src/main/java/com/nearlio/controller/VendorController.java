@@ -55,4 +55,10 @@ public class VendorController {
     public ResponseEntity<VendorProfile> getMyProfile(Authentication authentication) {
         return ResponseEntity.ok(vendorService.getVendorByUserEmail(authentication.getName()));
     }
+
+    @DeleteMapping("/services/{serviceId}")
+    public ResponseEntity<Void> deleteService(@PathVariable Long serviceId, Authentication authentication) {
+        vendorService.deleteService(authentication.getName(), serviceId);
+        return ResponseEntity.noContent().build();
+    }
 }

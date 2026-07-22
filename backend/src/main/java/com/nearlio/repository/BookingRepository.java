@@ -16,4 +16,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.slot.offering.vendor.id = :vendorId")
     long countTotalByVendorId(@Param("vendorId") Long vendorId);
+    boolean existsBySlotId(Long slotId);
 }

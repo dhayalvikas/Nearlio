@@ -116,7 +116,7 @@ export default function VendorDetail() {
 
       <h2 className="font-display text-xl text-ink mb-3">Services</h2>
       <div className="grid gap-3 mb-8">
-        {services.map((service) => (
+        {services.filter((s) => s.isActive).map((service) => (
           <button key={service.id} onClick={() => handleSelectService(service)} className="text-left">
             <Card
               className={`hover:border-terracotta transition ${
