@@ -60,4 +60,10 @@ public class VendorProfile {
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_type", nullable = false)
     private VerificationType verificationType = VerificationType.UNVERIFIED;
+
+    @Column(precision = 10, scale = 7)
+    private java.math.BigDecimal latitude;
+
+    @Column(precision = 10, scale = 7)
+    private java.math.BigDecimal longitude;
 }

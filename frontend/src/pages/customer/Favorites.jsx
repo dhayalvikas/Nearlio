@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Heart, Star } from 'lucide-react';
 import { getMyFavorites, removeFavorite } from '../../api/bookings';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Spinner from '../../components/ui/Spinner';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState([]);
@@ -14,9 +19,7 @@ export default function Favorites() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
+  useEffect(() => { loadFavorites(); }, []);
 
   const handleRemove = async (vendorId) => {
     try {
@@ -27,39 +30,37 @@ export default function Favorites() {
     }
   };
 
-  if (loading) return <p className="p-8 text-gray-500">Loading favorites...</p>;
+  if (loading) return <Spinner label="Loading favorites..." />;
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">My Favorites</h1>
+    <div className="max-w-2xl mx-auto px-6 py-10">
+      <h1 className="font-display text-3xl text-ink mb-6">My Favorites</h1>
 
-      {error && <p className="text-red-600 mb-4 text-sm">{error}</p>}
+      {error && <p className="text-sindoor text-sm mb-4">{error}</p>}
 
       {favorites.length === 0 ? (
-        <p className="text-gray-500">
-          No favorites yet — browse vendors and tap "Add to Favorites" to save them here.
-        </p>
+        <EmptyState
+          icon={Heart}
+          title="No favorites yet"
+          description='Browse vendors and tap "Add to Favorites" to save them here.'
+        />
       ) : (
         <div className="grid gap-4">
           {favorites.map((fav) => (
-            <div
-              key={fav.id}
-              className="bg-white border rounded-lg p-5 flex justify-between items-center"
-            >
+            <Card key={fav.id} className="flex justify-between items-center">
               <Link to={`/vendor/${fav.vendor.id}`} className="flex-1">
-                <h2 className="font-semibold text-lg">{fav.vendor.businessName}</h2>
-                <p className="text-sm text-gray-500 mt-1">{fav.vendor.location}</p>
-                <div className="text-yellow-500 text-sm font-medium mt-1">
-                  ★ {fav.vendor.avgRating.toFixed(1)} ({fav.vendor.ratingCount})
+                <h2 className="font-display text-lg text-ink">{fav.vendor.businessName}</h2>
+                <p className="text-sm text-ink/50 mt-1">{fav.vendor.location}</p>
+                <div className="flex items-center gap-1 text-terracotta text-sm font-medium mt-1">
+                  <Star size={13} fill="currentColor" />
+                  {fav.vendor.avgRating.toFixed(1)}
+                  <span className="text-ink/40 font-normal">({fav.vendor.ratingCount})</span>
                 </div>
               </Link>
-              <button
-                onClick={() => handleRemove(fav.vendor.id)}
-                className="text-sm text-red-600 border border-red-200 px-3 py-1 rounded hover:bg-red-50"
-              >
+              <Button variant="danger" onClick={() => handleRemove(fav.vendor.id)}>
                 Remove
-              </button>
-            </div>
+              </Button>
+            </Card>
           ))}
         </div>
       )}

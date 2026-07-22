@@ -25,4 +25,13 @@ public class CategoryController {
     public ResponseEntity<List<VendorProfile>> getVendorsByCategory(@PathVariable Long categoryId) {
         return ResponseEntity.ok(categoryService.getVendorsByCategory(categoryId));
     }
+
+    @GetMapping("/{categoryId}/vendors/nearby")
+    public ResponseEntity<List<VendorProfile>> getNearbyVendors(
+            @PathVariable Long categoryId,
+            @RequestParam Double lat,
+            @RequestParam Double lng,
+            @RequestParam(defaultValue = "10") Double radiusKm) {
+        return ResponseEntity.ok(categoryService.getNearbyVendors(categoryId, lat, lng, radiusKm));
+    }
 }

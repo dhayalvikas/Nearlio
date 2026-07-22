@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
+import { CheckCircle2, XCircle, PackageCheck, Inbox } from 'lucide-react';
 import { getVendorBookings, updateBookingStatus } from '../../api/vendor';
+import Badge from '../../components/ui/Badge';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Spinner from '../../components/ui/Spinner';
+import EmptyState from '../../components/ui/EmptyState';
 
-const statusColors = {
-  PENDING: 'bg-yellow-100 text-yellow-700',
-  CONFIRMED: 'bg-blue-100 text-blue-700',
-  COMPLETED: 'bg-green-100 text-green-700',
-  CANCELLED: 'bg-gray-100 text-gray-600',
-  REJECTED: 'bg-red-100 text-red-700',
+const statusVariant = {
+  PENDING: 'pending', CONFIRMED: 'confirmed', COMPLETED: 'completed',
+  CANCELLED: 'cancelled', REJECTED: 'rejected',
 };
 
 export default function IncomingBookings() {
@@ -25,9 +28,7 @@ export default function IncomingBookings() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    loadBookings();
-  }, []);
+  useEffect(() => { loadBookings(); }, []);
 
   const handleAction = async (bookingId, status, extra = {}) => {
     setError('');
@@ -37,7 +38,7 @@ export default function IncomingBookings() {
       setCompletingId(null);
       setCompleteForm({ laborCost: '', materialCost: '', travelCost: '', beforeImageUrl: '', afterImageUrl: '' });
     } catch (err) {
-      setError(err.response?.data?.error || `Failed to ${status.toLowerCase()} booking`);
+      setError(err.response?.data?.error || `Failed to update booking`);
     }
   };
 
@@ -52,94 +53,83 @@ export default function IncomingBookings() {
     });
   };
 
-  if (loading) return <p className="p-8 text-gray-500">Loading bookings...</p>;
+  if (loading) return <Spinner label="Loading bookings..." />;
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Incoming Bookings</h1>
+    <div className="max-w-2xl mx-auto px-6 py-10">
+      <h1 className="font-display text-3xl text-ink mb-6">Incoming Bookings</h1>
 
-      {error && <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">{error}</div>}
+      {error && <p className="text-sindoor text-sm mb-4">{error}</p>}
 
       {bookings.length === 0 ? (
-        <p className="text-gray-500">No bookings yet.</p>
+        <EmptyState
+          icon={Inbox}
+          title="Nothing yet"
+          description="Bookings from customers will show up here as they come in."
+        />
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-5">
           {bookings.map((booking) => (
-            <div key={booking.id} className="bg-white border rounded-lg p-5">
-              <div className="flex justify-between items-start">
+            <div key={booking.id} className="bg-white border border-ink/10 border-dashed rounded-lg overflow-hidden">
+              <div className="flex items-start justify-between p-5">
                 <div>
-                  <h2 className="font-semibold">{booking.slot.offering.serviceName}</h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Customer: {booking.customer.name} · {booking.customer.phone || 'no phone'}
+                  <p className="font-mono text-xs text-ink/40 mb-1">
+                    TOKEN #{String(booking.id).padStart(4, '0')}
                   </p>
-                  <p className="text-sm text-gray-500">
-                    {booking.slot.slotDate} · {booking.slot.startTime.slice(0, 5)}-{booking.slot.endTime.slice(0, 5)}
+                  <h2 className="font-display text-lg text-ink">{booking.slot.offering.serviceName}</h2>
+                  <p className="text-sm text-ink/60 mt-1">
+                    {booking.customer.name} {booking.customer.phone && `· ${booking.customer.phone}`}
+                  </p>
+                  <p className="font-mono text-xs text-ink/40 mt-2">
+                    {booking.slot.slotDate} · {booking.slot.startTime.slice(0, 5)}–{booking.slot.endTime.slice(0, 5)}
                   </p>
                   {booking.isEmergency && (
-                    <span className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded mt-2 inline-block">
-                      Emergency
-                    </span>
+                    <span className="inline-block mt-2"><Badge variant="rejected">Emergency</Badge></span>
                   )}
                 </div>
-                <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusColors[booking.status]}`}>
-                  {booking.status}
-                </span>
+                <Badge variant={statusVariant[booking.status]}>{booking.status}</Badge>
               </div>
 
               {booking.status === 'PENDING' && (
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={() => handleAction(booking.id, 'CONFIRMED')}
-                    className="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700"
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    onClick={() => handleAction(booking.id, 'REJECTED')}
-                    className="bg-red-50 text-red-600 px-4 py-1.5 rounded text-sm hover:bg-red-100"
-                  >
-                    Reject
-                  </button>
+                <div className="border-t border-dashed border-ink/10 px-5 py-4 flex gap-2">
+                  <Button variant="primary" onClick={() => handleAction(booking.id, 'CONFIRMED')}>
+                    <CheckCircle2 size={15} /> Confirm
+                  </Button>
+                  <Button variant="danger" onClick={() => handleAction(booking.id, 'REJECTED')}>
+                    <XCircle size={15} /> Reject
+                  </Button>
                 </div>
               )}
 
               {booking.status === 'CONFIRMED' && completingId !== booking.id && (
-                <button
-                  onClick={() => setCompletingId(booking.id)}
-                  className="mt-4 bg-green-600 text-white px-4 py-1.5 rounded text-sm hover:bg-green-700"
-                >
-                  Mark Complete
-                </button>
+                <div className="border-t border-dashed border-ink/10 px-5 py-4">
+                  <Button variant="success" onClick={() => setCompletingId(booking.id)}>
+                    <PackageCheck size={15} /> Mark Complete
+                  </Button>
+                </div>
               )}
 
               {completingId === booking.id && (
-                <form onSubmit={(e) => handleCompleteSubmit(e, booking.id)} className="mt-4 pt-4 border-t space-y-2">
-                  <p className="text-sm font-medium mb-2">Complete this job:</p>
+                <form
+                  onSubmit={(e) => handleCompleteSubmit(e, booking.id)}
+                  className="border-t border-dashed border-ink/10 px-5 py-4 space-y-3"
+                >
+                  <p className="text-sm font-medium text-ink/70">Close out this job</p>
                   <div className="grid grid-cols-3 gap-2">
-                    <input type="number" placeholder="Labor ₹" value={completeForm.laborCost}
-                      onChange={(e) => setCompleteForm({ ...completeForm, laborCost: e.target.value })}
-                      className="border rounded px-2 py-1 text-sm" />
-                    <input type="number" placeholder="Material ₹" value={completeForm.materialCost}
-                      onChange={(e) => setCompleteForm({ ...completeForm, materialCost: e.target.value })}
-                      className="border rounded px-2 py-1 text-sm" />
-                    <input type="number" placeholder="Travel ₹" value={completeForm.travelCost}
-                      onChange={(e) => setCompleteForm({ ...completeForm, travelCost: e.target.value })}
-                      className="border rounded px-2 py-1 text-sm" />
+                    <Input placeholder="0" label="Labor ₹" type="number" value={completeForm.laborCost}
+                      onChange={(e) => setCompleteForm({ ...completeForm, laborCost: e.target.value })} />
+                    <Input placeholder="0" label="Material ₹" type="number" value={completeForm.materialCost}
+                      onChange={(e) => setCompleteForm({ ...completeForm, materialCost: e.target.value })} />
+                    <Input placeholder="0" label="Travel ₹" type="number" value={completeForm.travelCost}
+                      onChange={(e) => setCompleteForm({ ...completeForm, travelCost: e.target.value })} />
                   </div>
-                  <input placeholder="Before photo URL (optional)" value={completeForm.beforeImageUrl}
-                    onChange={(e) => setCompleteForm({ ...completeForm, beforeImageUrl: e.target.value })}
-                    className="w-full border rounded px-2 py-1 text-sm" />
-                  <input placeholder="After photo URL (optional)" value={completeForm.afterImageUrl}
-                    onChange={(e) => setCompleteForm({ ...completeForm, afterImageUrl: e.target.value })}
-                    className="w-full border rounded px-2 py-1 text-sm" />
+                  <Input label="Before photo URL (optional)" value={completeForm.beforeImageUrl}
+                    onChange={(e) => setCompleteForm({ ...completeForm, beforeImageUrl: e.target.value })} />
+                  <Input label="After photo URL (optional)" value={completeForm.afterImageUrl}
+                    onChange={(e) => setCompleteForm({ ...completeForm, afterImageUrl: e.target.value })} />
                   <div className="flex gap-2">
-                    <button type="submit" className="bg-green-600 text-white px-4 py-1.5 rounded text-sm hover:bg-green-700">
-                      Submit & Complete
-                    </button>
-                    <button type="button" onClick={() => setCompletingId(null)}
-                      className="text-gray-500 px-4 py-1.5 rounded text-sm hover:bg-gray-50">
-                      Cancel
-                    </button>
+                    <Button type="submit" variant="success">Submit & Complete</Button>
+                    <Button type="button" variant="ghost" onClick={() => setCompletingId(null)}>Cancel</Button>
                   </div>
                 </form>
               )}

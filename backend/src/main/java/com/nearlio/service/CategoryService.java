@@ -23,4 +23,8 @@ public class CategoryService {
     public List<VendorProfile> getVendorsByCategory(Long categoryId) {
         return vendorProfileRepository.findByCategoryIdAndIsActiveTrue(categoryId);
     }
+
+    public List<VendorProfile> getNearbyVendors(Long categoryId, Double lat, Double lng, Double radiusKm) {
+        return vendorProfileRepository.findNearbyByCategory(lat, lng, categoryId, radiusKm);
+    }
 }
