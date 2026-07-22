@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react';
-import { PlusCircle, Store, Wrench, CalendarPlus } from 'lucide-react';
-import { createVendorProfile, addVendorService, createSlot, getMyVendorProfile } from '../../api/vendor';
+import { PlusCircle, Store, Wrench, CalendarPlus, Trash2 } from 'lucide-react';
+import {
+  createVendorProfile,
+  addVendorService,
+  createSlot,
+  getMyVendorProfile,
+  getMySlots,
+  deleteService,
+  deleteSlot,
+} from '../../api/vendor';
 import { getCategories, getVendorServices } from '../../api/catalog';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
+import Badge from '../../components/ui/Badge';
 
 export default function VendorDashboard() {
   const [categories, setCategories] = useState([]);
   const [myVendorId, setMyVendorId] = useState(null);
   const [myServices, setMyServices] = useState([]);
+  const [mySlots, setMySlots] = useState([]);
 
   const [profileForm, setProfileForm] = useState({
     categoryId: '', businessName: '', description: '', tags: '',
@@ -32,10 +42,10 @@ export default function VendorDashboard() {
       })
       .then((res) => setMyServices(res.data))
       .catch(() => {
-        // No profile yet — expected for a brand-new vendor before their first save.
         setMyVendorId(null);
         setMyServices([]);
       });
+    getMySlots().then((res) => setMySlots(res.data)).catch(() => setMySlots([]));
   };
 
   useEffect(() => {
@@ -79,8 +89,29 @@ export default function VendorDashboard() {
       await createSlot({ ...slotForm, offeringId: Number(slotForm.offeringId) });
       setMessage('Slot created.');
       setSlotForm({ ...slotForm, slotDate: '', startTime: '', endTime: '' });
+      loadMyServices();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create slot');
+    }
+  };
+
+  const handleDeleteService = async (id) => {
+    if (!confirm('Deactivate this service? It will no longer be bookable.')) return;
+    try {
+      await deleteService(id);
+      loadMyServices();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete service');
+    }
+  };
+
+  const handleDeleteSlot = async (id) => {
+    if (!confirm('Delete this slot?')) return;
+    try {
+      await deleteSlot(id);
+      loadMyServices();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete slot');
     }
   };
 
@@ -162,7 +193,7 @@ export default function VendorDashboard() {
             required
           >
             <option value="">Choose a service</option>
-            {myServices.map((s) => (
+            {myServices.filter((s) => s.isActive).map((s) => (
               <option key={s.id} value={s.id}>{s.serviceName} — ₹{s.price}</option>
             ))}
           </Select>
@@ -176,6 +207,51 @@ export default function VendorDashboard() {
           </div>
           <Button type="submit" variant="primary"><CalendarPlus size={15} /> Create Slot</Button>
         </form>
+      </Card>
+
+      <Card className="mt-6">
+        <h2 className="font-display text-lg text-ink mb-4">My Services</h2>
+        {myServices.filter((s) => s.isActive).length === 0 ? (
+          <p className="text-sm text-ink/50">No active services yet.</p>
+        ) : (
+          <div className="grid gap-2">
+            {myServices.filter((s) => s.isActive).map((s) => (
+              <div key={s.id} className="flex justify-between items-center border border-ink/10 rounded px-3 py-2">
+                <span className="text-sm text-ink">{s.serviceName} — ₹{s.price}</span>
+                <button onClick={() => handleDeleteService(s.id)} className="text-sindoor hover:text-sindoor/70">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <Card className="mt-6">
+        <h2 className="font-display text-lg text-ink mb-4">My Slots</h2>
+        {mySlots.length === 0 ? (
+          <p className="text-sm text-ink/50">No slots created yet.</p>
+        ) : (
+          <div className="grid gap-2">
+            {mySlots.map((slot) => (
+              <div key={slot.id} className="flex justify-between items-center border border-ink/10 rounded px-3 py-2">
+                <span className="text-sm text-ink font-mono">
+                  {slot.slotDate} · {slot.startTime.slice(0, 5)}–{slot.endTime.slice(0, 5)}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Badge variant={slot.isBooked ? 'confirmed' : 'neutral'}>
+                    {slot.isBooked ? 'Booked' : 'Open'}
+                  </Badge>
+                  {!slot.isBooked && (
+                    <button onClick={() => handleDeleteSlot(slot.id)} className="text-sindoor hover:text-sindoor/70">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );

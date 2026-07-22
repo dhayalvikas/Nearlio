@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { CalendarClock, Star, ShieldCheck } from 'lucide-react';
-import { getMyBookings, submitRating } from '../../api/bookings';
+import { CalendarClock, Star, ShieldCheck, XCircle } from 'lucide-react';
+import { getMyBookings, submitRating, cancelBooking } from '../../api/bookings';
 import { useSSE } from '../../hooks/useSSE';
 import Badge from '../../components/ui/Badge';
 import Spinner from '../../components/ui/Spinner';
@@ -19,6 +19,7 @@ export default function MyBookings() {
   const [ratingBookingId, setRatingBookingId] = useState(null);
   const [ratingForm, setRatingForm] = useState({ rating: 5, review: '' });
   const [ratedBookings, setRatedBookings] = useState(new Set());
+  const [error, setError] = useState('');
 
   const loadBookings = () => {
     getMyBookings().then((res) => setBookings(res.data)).finally(() => setLoading(false));
@@ -35,6 +36,17 @@ export default function MyBookings() {
       setRatingForm({ rating: 5, review: '' });
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to submit rating');
+    }
+  };
+
+  const handleCancel = async (bookingId) => {
+    if (!confirm('Cancel this booking?')) return;
+    setError('');
+    try {
+      await cancelBooking(bookingId, 'Cancelled by customer');
+      loadBookings();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to cancel booking');
     }
   };
 
@@ -58,6 +70,7 @@ export default function MyBookings() {
           ● {liveUpdate}
         </div>
       )}
+      {error && <p className="text-sindoor text-sm mb-4">{error}</p>}
 
       {bookings.length === 0 ? (
         <EmptyState
@@ -69,7 +82,6 @@ export default function MyBookings() {
         <div className="grid gap-5">
           {bookings.map((booking) => (
             <div key={booking.id} className="relative">
-              {/* Receipt stub */}
               <div className="bg-white border border-ink/10 border-dashed rounded-lg overflow-hidden">
                 <div className="flex items-start justify-between p-5">
                   <div>
@@ -92,6 +104,14 @@ export default function MyBookings() {
                   <Badge variant={statusVariant[booking.status]}>{booking.status}</Badge>
                 </div>
 
+                {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+                  <div className="border-t border-dashed border-ink/10 px-5 py-4">
+                    <Button variant="danger" onClick={() => handleCancel(booking.id)}>
+                      <XCircle size={14} /> Cancel Booking
+                    </Button>
+                  </div>
+                )}
+
                 {booking.status === 'COMPLETED' && (
                   <div className="border-t border-dashed border-ink/10 px-5 py-4 bg-cream/50 font-mono text-xs text-ink/60 space-y-1">
                     {booking.laborCost && <p>Labor .......... ₹{booking.laborCost}</p>}
@@ -102,6 +122,12 @@ export default function MyBookings() {
                         <ShieldCheck size={12} /> Warranty until {booking.warrantyExpiresAt}
                       </p>
                     )}
+                  </div>
+                )}
+
+                {booking.status === 'CANCELLED' && booking.cancellationReason && (
+                  <div className="border-t border-dashed border-ink/10 px-5 py-3 text-xs text-ink/40">
+                    Cancelled by {booking.cancelledBy?.toLowerCase()}
                   </div>
                 )}
 
@@ -139,7 +165,6 @@ export default function MyBookings() {
                 )}
               </div>
 
-              {/* Perforation dots between stub sections */}
               <div className="absolute left-0 right-0 top-0 h-full pointer-events-none">
                 <div className="absolute -left-1.5 top-1/2 w-3 h-3 rounded-full bg-cream border border-ink/10" />
                 <div className="absolute -right-1.5 top-1/2 w-3 h-3 rounded-full bg-cream border border-ink/10" />

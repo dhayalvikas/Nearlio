@@ -8,3 +8,6 @@ export const updateBookingStatus = (bookingId, data) => api.patch(`/bookings/${b
 export const getVendorStats = () => api.get('/vendor/stats');
 export const getVendorServices = (vendorId) => api.get(`/vendor/${vendorId}/services`);
 export const getMyVendorProfile = () => api.get('/vendor/me');
+export const getMySlots = () => api.get('/slots/mine');
+export const deleteService = (id) => api.delete(`/vendor/services/${id}`);
+export const deleteSlot = (id) => api.delete(`/slots/${id}`);
